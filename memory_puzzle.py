@@ -146,16 +146,10 @@ def splitIntoGroupsOf(groupSize,theList):
         result.append((theList[i:i+groupSize]))
     return result
 
-
-
-
-
-
-
-
 def leftTopCoordsOfBox(boxx,boxy):
     left = boxx * (BOXSIZE + GAPSIZE) + XMARGIN
     top =boxy * (BOXSIZE + GAPSIZE) + YMARGIN
     return (top, left)
+
 if __name__ == '__main__':
     main()
