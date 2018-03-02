@@ -44,6 +44,26 @@ ALLCOLORS = (RED, GREEN, BLUE, YELLOW, ORANGE, PURPLE, CYAN)
 ALLSHAPES = (DONUT, SQUARE, DIAMOND, LINES, OVAL)
 assert len(ALLCOLORS) * len(ALLSHAPES) * 2 >= BOARDWIDTH * BOARDHEIGHT
 
+def drawBoxCovers(board, boxes, coverage):
+    for box in boxes:
+        left, top = leftTopCoordsOfBox(box[0], box[1])
+        pygame.draw.rect(DISPLAYSURF,BGCOLOR,(left,top,BOXSIZE,BOXSIZE))
+        shape , color = getShapeAndColor(board,box[0],box[1])
+        drawIcon(shape,color,box[0],box[1])
+
+        if coverage >0:
+            pygame.draw.rect(DISPLAYSURF, BOXCOLOR, (left, top, coverage,BOXSIZE))
+    pygame.display.update()
+    FPSCLOCK.tick(FPS)
+
+def revealBoxesAnimation(board,boxesToReveal):
+    for coverage in range(BOXSIZE, (-REVEALSPEED)-1, -REVEALSPEED):
+        drawBoxCovers(board, boxesToReveal, coverage)
+
+def coverBoxesAnimation(board, boxesToCover):
+    for coverage in range(0, BOXSIZE + REVEALSPEED, REVEALSPEED):
+        drawBoxCovers(board, boxesToCover, coverage)
+
 def getShapeAndColor(board, boxx, boxy):
     return board[boxx][boxy][0], board[boxx][boxy][1]
 
@@ -69,7 +89,24 @@ def drawIcon(shape, color, boxx, boxy):
     elif shape == OVAL:
         pygame.draw.ellipse(DISPLAYSURF, color, (left, top + quarter,  BOXSIZE, half))
 
+def leftTopCoordsOfBox(boxx,boxy):
+    '''
+    Get the top left corners
+    :param boxx
+    :param boxy
+    :return:X_LEFTTOP,Y_LEFTTOP
+    '''
+    left = boxx * (BOXSIZE + GAPSIZE) + XMARGIN
+    top =boxy * (BOXSIZE + GAPSIZE) + YMARGIN
+    return (left, top)
+
 def drawBoard(board,revealed):
+    '''
+    Draws all of the boxes in their covered or revealed state.
+    :param board
+    :param revealed
+    :return: None
+    '''
     for boxx in range(BOARDWIDTH):
         for boxy in range(BOARDHEIGHT):
             left,top = leftTopCoordsOfBox(boxx,boxy)
@@ -79,7 +116,34 @@ def drawBoard(board,revealed):
                 shape, color = getShapeAndColor(board, boxx, boxy)
                 drawIcon(shape,color,boxx,boxy)
 
+def generateRevealedBoxesData(val):
+    """
+    List of boolean of boxes revealed during the game
+    :return revealBoxes=[[BOOL]*HEIGHT] with len(revealBoxes) = BOARDWIDTH
+    """
+    revealedBoxes = []
+    for i in range(BOARDWIDTH):
+        revealedBoxes.append([val] *BOARDHEIGHT)
+    return revealedBoxes
+
+def splitIntoGroupsOf(groupSize,theList):
+    '''
+    Split the board into groupSize
+    :param groupSize
+    :param theList
+    :return: List of group of icons
+    '''
+    result = []
+    for i in range(0,len(theList), groupSize):
+        result.append((theList[i:i+groupSize]))
+    return result
+
 def startGameAnimation(board):
+    '''
+    Randomly reveal 8 boxes  at a time.
+    :param board
+    :return: None
+    '''
     coveredBoxes = generateRevealedBoxesData(False)
     boxes = []
     for x in range(BOARDWIDTH):
@@ -88,7 +152,9 @@ def startGameAnimation(board):
     random.shuffle(boxes)
     boxGroups = splitIntoGroupsOf(8,boxes)
     drawBoard(board,coveredBoxes)
-
+    for boxGroup in boxGroups:
+        revealBoxesAnimation(board,boxGroup)
+        coverBoxesAnimation(board,boxGroup)
 
 def getRandomizeBoard():
     """
@@ -113,15 +179,7 @@ def getRandomizeBoard():
         board.append(column)
     return board
 
-def generateRevealedBoxesData(val):
-    """
-    List of boolean of boxes revealed during the game
-    :return revealBoxes=[[BOOL]*HEIGHT] with len(revealBoxes) = BOARDWIDTH
-    """
-    revealedBoxes = []
-    for i in range(BOARDWIDTH):
-        revealedBoxes.append([val] *BOARDHEIGHT)
-    return revealedBoxes
+
 
 
 def main():
@@ -140,16 +198,8 @@ def main():
     DISPLAYSURF.fill(BGCOLOR)
     startGameAnimation(mainBoard)
 
-def splitIntoGroupsOf(groupSize,theList):
-    result = []
-    for i in range(0,len(theList), groupSize):
-        result.append((theList[i:i+groupSize]))
-    return result
 
-def leftTopCoordsOfBox(boxx,boxy):
-    left = boxx * (BOXSIZE + GAPSIZE) + XMARGIN
-    top =boxy * (BOXSIZE + GAPSIZE) + YMARGIN
-    return (top, left)
+
 
 if __name__ == '__main__':
     main()
